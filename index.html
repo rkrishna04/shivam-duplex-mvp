@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Shivam Duplex Smart Society — 3D Platform MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --glass-blur: 26px;
+      --accent: #5E81F4;
+      --accent-soft: rgba(94, 129, 244, 0.25);
+      --emerald: #32D583;
+      --amber: #FDB022;
+      --coral: #F97066;
+      --text-primary: #F5F7FA;
+      --text-secondary: rgba(245, 247, 250, 0.72);
+      --content-card-bg: rgba(18, 22, 32, 0.82);
+      --sidebar-w: 340px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; background: #0a0c12; color: var(--text-primary); }
+    #canvas-container { position: absolute; inset: 0; z-index: 0; }
+    canvas { display: block; width: 100% !important; height: 100% !important; }
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur)) saturate(185%) contrast(104%);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(185%) contrast(104%);
+      border: 1px solid var(--glass-border);
+      box-shadow: inset 0 1px 0.5px rgba(255,255,255,0.34), 0 8px 32px rgba(0,0,0,0.35);
+      border-radius: 20px;
+    }
+    .glass-strong {
+      background: rgba(12, 14, 22, 0.72);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+    }
+    #topbar {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 40;
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 18px; max-width: calc(100vw - 32px);
+    }
+    #topbar .logo { font-weight: 700; font-size: 14px; letter-spacing: -0.02em; white-space: nowrap; }
+    #topbar .logo span { color: var(--accent); }
+    .mode-btn {
+      background: transparent; border: none; color: var(--text-secondary); font-size: 12px; font-weight: 500;
+      padding: 7px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .mode-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.06); }
+    .mode-btn.active { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px rgba(94,129,244,0.4); }
+    #sidebar {
+      position: fixed; top: 80px; left: 16px; bottom: 16px; width: var(--sidebar-w); z-index: 30;
+      display: flex; flex-direction: column; overflow: hidden; transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    #sidebar.collapsed { transform: translateX(calc(-100% - 24px)); }
+    .sidebar-header {
+      padding: 18px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sidebar-header h2 { font-size: 15px; font-weight: 600; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 10px; border: none; background: rgba(255,255,255,0.06);
+      color: var(--text-secondary); cursor: pointer; display: grid; place-items: center; transition: 0.2s;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .sidebar-body {
+      flex: 1; overflow-y: auto; padding: 12px 14px 20px;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+    .section-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-secondary); margin: 16px 0 8px 4px;
+    }
+    .section-title:first-child { margin-top: 4px; }
+    .card {
+      background: var(--content-card-bg); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: 0.18s;
+    }
+    .card:hover { border-color: rgba(94,129,244,0.35); background: rgba(24,28,42,0.9); }
+    .card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); }
+    .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .card p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+    .status-dot.ok { background: var(--emerald); box-shadow: 0 0 6px var(--emerald); }
+    .status-dot.warn { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .status-dot.fault { background: var(--coral); box-shadow: 0 0 8px var(--coral); animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(1.25); } }
+    #bottombar {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 35;
+      display: flex; gap: 8px; padding: 8px; align-items: center;
+    }
+    .ctrl-btn {
+      height: 40px; min-width: 40px; padding: 0 14px; border-radius: 14px; border: none;
+      background: rgba(255,255,255,0.07); color: var(--text-primary); font-size: 12px; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.14); }
+    .ctrl-btn.active { background: var(--accent-soft); color: #fff; }
+    #detail-panel {
+      position: fixed; top: 80px; right: 16px; width: 300px; z-index: 32; max-height: calc(100vh - 120px);
+      overflow-y: auto; padding: 16px; display: none; animation: slideIn 0.3s ease;
+    }
+    #detail-panel.visible { display: block; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    #detail-panel h2 { font-size: 16px; margin-bottom: 4px; }
+    #detail-panel .meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px; padding: 8px 10px; color: #fff; font-size: 13px; outline: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .btn-row { display: flex; gap: 8px; margin-top: 14px; }
+    .btn {
+      flex: 1; height: 36px; border-radius: 12px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.14); }
+    .btn-danger { background: rgba(249,112,102,0.2); color: var(--coral); }
+    .btn-success { background: rgba(50,213,131,0.2); color: var(--emerald); }
+    #radar {
+      position: fixed; bottom: 80px; right: 16px; width: 120px; height: 120px; border-radius: 50%; z-index: 25;
+      overflow: hidden; border: 2px solid rgba(255,255,255,0.15); background: rgba(8,10,16,0.75); backdrop-filter: blur(12px);
+    }
+    #radar canvas { width: 100%; height: 100%; }
+    #toast {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: rgba(18,22,32,0.92); border: 1px solid rgba(255,255,255,0.12); padding: 10px 18px;
+      border-radius: 14px; font-size: 13px; z-index: 50; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(16px);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #loader {
+      position: fixed; inset: 0; z-index: 100; background: #0a0c12; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px; transition: opacity 0.5s;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid rgba(94,129,244,0.2); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 860px) {
+      #sidebar {
+        top: auto; left: 0; right: 0; bottom: 0; width: 100%; height: 44vh;
+        border-radius: 24px 24px 0 0; transform: translateY(0);
+      }
+      #sidebar.collapsed { transform: translateY(calc(100% - 48px)); }
+      #detail-panel { top: auto; bottom: 48vh; right: 12px; left: 12px; width: auto; max-height: 40vh; }
+      #topbar { top: 10px; }
+      #bottombar { bottom: calc(44vh + 12px); }
+      #radar { bottom: calc(44vh + 70px); right: 12px; width: 90px; height: 90px; }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      .glass, .glass-strong { background: #161a24 !important; backdrop-filter: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.6)">Loading Shivam Duplex 3D…</div>
+  </div>
+  <div id="canvas-container"></div>
+  <div id="topbar" class="glass">
+    <div class="logo">Shivam <span>Duplex</span></div>
+    <button class="mode-btn active" data-mode="aerial">Aerial</button>
+    <button class="mode-btn" data-mode="street">Street View</button>
+    <button class="mode-btn" data-mode="top">2D Plan</button>
+  </div>
+  <aside id="sidebar" class="glass glass-strong">
+    <div class="sidebar-header">
+      <h2>Society Registry</h2>
+      <button class="icon-btn" id="toggle-sidebar" title="Collapse">✕</button>
+    </div>
+    <div class="sidebar-body">
+      <div class="section-title">Quick Actions</div>
+      <div class="card" id="btn-add-vehicle"><h3>＋ Assign Vehicle</h3><p>Place car / scooter at selected plot</p></div>
+      <div class="card" id="btn-register-cctv"><h3>＋ Register Home CCTV</h3><p>Add private camera coverage cone</p></div>
+      <div class="card" id="btn-road-closure"><h3>🚧 Schedule Road Closure</h3><p>Marriage / Navratri / Maintenance</p></div>
+      <div class="section-title">Infrastructure Health</div>
+      <div id="infra-list"></div>
+      <div class="section-title">Active Events</div>
+      <div id="events-list"><div class="card" style="opacity:0.6"><h3>No active closures</h3><p>Schedule one from the actions above</p></div></div>
+      <div class="section-title">Plots (sample)</div>
+      <div id="plots-list"></div>
+    </div>
+  </aside>
+  <div id="detail-panel" class="glass glass-strong">
+    <h2 id="detail-title">Plot N-01</h2>
+    <div class="meta" id="detail-meta">West Lane 1 • G+1 Duplex</div>
+    <div class="field"><label>Homeowner</label><input type="text" id="owner-name" placeholder="Resident name" /></div>
+    <div class="field"><label>Contact</label><input type="text" id="owner-phone" placeholder="+91 …" /></div>
+    <div class="field"><label>Vehicle Bay</label>
+      <select id="vehicle-type">
+        <option value="">None</option>
+        <option value="sedan">Sedan / Hatchback</option>
+        <option value="suv">SUV</option>
+        <option value="bike">Motorcycle</option>
+        <option value="scooter">Scooter / Activa</option>
+      </select>
+    </div>
+    <div class="field"><label>Plate (GJ-06-…)</label><input type="text" id="vehicle-plate" placeholder="GJ-06-AB-1234" /></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-save-plot">Save</button>
+      <button class="btn btn-ghost" id="btn-close-detail">Close</button>
+    </div>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn btn-success" id="btn-add-cctv-here">＋ CCTV Cone</button>
+      <button class="btn btn-danger" id="btn-clear-vehicle">Clear Vehicle</button>
+    </div>
+  </div>
+  <div id="bottombar" class="glass">
+    <button class="ctrl-btn active" id="btn-day" title="Day">☀ Day</button>
+    <button class="ctrl-btn" id="btn-dusk" title="Dusk">🌆 Dusk</button>
+    <button class="ctrl-btn" id="btn-night" title="Night">🌙 Night</button>
+    <button class="ctrl-btn" id="btn-reset-cam">Reset View</button>
+    <button class="ctrl-btn" id="btn-focus-gate">North Gate</button>
+    <button class="ctrl-btn" id="btn-focus-park">Park</button>
+  </div>
+  <div id="radar"><canvas id="radar-canvas"></canvas></div>
+  <div id="toast"></div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
