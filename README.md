@@ -1,51 +1,40 @@
 # Shivam Duplex Smart Society — 3D Platform MVP
 
-Interactive 3D digital twin of **Shivam Duplex** (Vadodara, Gujarat) built with Three.js.
+Interactive 3D digital twin of **Shivam Duplex**, Vadodara (off D Mart Road, near Kapurai Police Station).
+
+Built from the exact annotated satellite map:
+- **Black dots** → ~155 duplex houses
+- **Yellow lines** → internal road network
+- **Green areas** → community parks
+- **Pink dot** → Society Office
+- **Red outline** → society boundary
 
 ## Features
 
-- Full-bleed 3D aerial map (orbit / pan / zoom)
-- Street View (eye-level walk mode)
-- 2D top-down plan
-- Clickable plots with homeowner + vehicle registry
-- Private CCTV cone registration
-- Street-light & society CCTV fault reporting
-- Road-closure / event scheduling with 3D tents & barricades
+- Full 3D aerial view with orbit / pan / zoom
+- 2D Plan mode
+- Street-level walk mode (W/A/S/D)
+- Click any house → edit owner, phone, vehicle, plate
+- Committee houses pre-highlighted (gold)
+- Society Office (pink building)
+- 16 street lights + 5 CCTV poles with coverage cones
+- Report / resolve infrastructure faults
+- Schedule road closures (tent + barricades)
 - Day / Dusk / Night lighting
-- Apple Liquid Glass inspired floating UI
-- State persisted in browser localStorage
-- Mobile-responsive (bottom sheet on small screens)
-
-## Live Demo
-
-After deploying to Vercel the URL will appear here.
+- Mini radar
+- Liquid Glass UI
+- State saved in browser localStorage
 
 ## Run locally
 
 ```bash
-# Any static server works
-python3 -m http.server 8765
+npx serve .
 # or
-npx serve
+python3 -m http.server 8765
 ```
 
-Then open http://localhost:8765
+Open http://localhost:8765
 
-## Deploy to Vercel
+## Deploy
 
-1. Push this repo to GitHub
-2. Go to https://vercel.com/new
-3. Import the repository
-4. Click **Deploy** (no build settings needed — pure static)
-
-Or use the Vercel CLI:
-
-```bash
-npx vercel
-```
-
-## Tech
-
-- Three.js r170 (CDN)
-- Vanilla JS + modern CSS (backdrop-filter glass)
-- No build step required
+Just import this repo on [vercel.com/new](https://vercel.com/new) — no build step required.
