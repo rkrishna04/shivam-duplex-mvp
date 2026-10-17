@@ -145,16 +145,61 @@
       border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .detail-handle {
+      display: none;
+      width: 40px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.25);
+      margin: 0 auto 12px;
+    }
     @media (max-width: 860px) {
-      #sidebar {
-        top: auto; left: 0; right: 0; bottom: 0; width: 100%; height: 44vh;
-        border-radius: 24px 24px 0 0; transform: translateY(0);
+      .detail-handle { display: block; }
+      #topbar {
+        top: 8px; left: 8px; right: 8px; transform: none;
+        width: auto; max-width: none; justify-content: space-between;
+        padding: 6px 10px; z-index: 50;
       }
-      #sidebar.collapsed { transform: translateY(calc(100% - 48px)); }
-      #detail-panel { top: auto; bottom: 48vh; right: 12px; left: 12px; width: auto; max-height: 40vh; }
-      #topbar { top: 10px; }
-      #bottombar { bottom: calc(44vh + 12px); }
-      #radar { bottom: calc(44vh + 70px); right: 12px; width: 90px; height: 90px; }
+      #topbar .logo { font-size: 13px; }
+      .mode-btn { padding: 6px 8px; font-size: 11px; }
+      #sidebar {
+        top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+        height: 42vh; max-height: 42vh;
+        border-radius: 22px 22px 0 0; transform: translateY(0); z-index: 40;
+      }
+      #sidebar.collapsed { transform: translateY(calc(100% - 52px)); }
+      #detail-panel {
+        position: fixed; top: auto; left: 0; right: 0; bottom: 0;
+        width: 100%; max-height: 58vh;
+        border-radius: 22px 22px 0 0;
+        padding: 14px 16px 20px; z-index: 45;
+        overflow-y: auto; -webkit-overflow-scrolling: touch;
+      }
+      #detail-panel.visible {
+        display: block; animation: sheetUp 0.28s ease;
+      }
+      @keyframes sheetUp {
+        from { transform: translateY(100%); opacity: 0.6; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      body.detail-open #sidebar { visibility: hidden; pointer-events: none; }
+      #bottombar {
+        bottom: auto; top: 58px; left: 50%; transform: translateX(-50%);
+        z-index: 48; padding: 6px; gap: 4px;
+        max-width: calc(100vw - 16px); flex-wrap: wrap; justify-content: center;
+      }
+      .ctrl-btn {
+        height: 34px; min-width: 34px; padding: 0 10px;
+        font-size: 11px; border-radius: 12px;
+      }
+      #radar { display: none; }
+      #toast { top: 110px; z-index: 60; }
+      #detail-panel h2 { font-size: 15px; }
+      #detail-panel .meta { margin-bottom: 10px; font-size: 11px; }
+      .field { margin-bottom: 10px; }
+      .field input, .field select {
+        padding: 10px 12px; font-size: 16px; border-radius: 12px;
+      }
+      .btn { height: 40px; font-size: 13px; border-radius: 12px; }
+      .btn-row { gap: 10px; margin-top: 12px; }
     }
     @media (prefers-reduced-transparency: reduce) {
       .glass, .glass-strong { background: #161a24 !important; backdrop-filter: none !important; }
@@ -192,6 +237,7 @@
     </div>
   </aside>
   <div id="detail-panel" class="glass glass-strong">
+    <div class="detail-handle" aria-hidden="true"></div>
     <h2 id="detail-title">Duplex 01</h2>
     <div class="meta" id="detail-meta">Society · G+1 Duplex</div>
     <div class="field"><label>Homeowner</label><input type="text" id="owner-name" placeholder="Resident name" /></div>
